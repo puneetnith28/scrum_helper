@@ -49,6 +49,7 @@ function applyI18n() {
     });
 }
 
+<<<<<<< Updated upstream
 
 document.addEventListener('DOMContentLoaded', function () {
     // Apply translations as soon as the DOM is ready
@@ -1205,6 +1206,1494 @@ document.addEventListener('DOMContentLoaded', function () {
                 repoDropdown.innerHTML = `<div class="p-3 text-center text-gray-500 text-sm" style="padding-left: 10px; ">${chrome.i18n.getMessage('repoNotFound')}</div>`;
             } else {
                 repoDropdown.innerHTML = filtered.slice(0, 10).map(repo => `
+=======
+// Platform visibility toggle function (global scope)
+function updatePlatformUI(platform) {
+	console.log('[POPUP] Updating UI for platform:', platform);
+
+	// Show/hide GitHub-specific sections
+	const githubSections = document.querySelectorAll('.githubOnlySection');
+	console.log('[POPUP] Found GitHub sections:', githubSections.length);
+	githubSections.forEach((section, index) => {
+		if (platform === 'github') {
+			section.style.setProperty('display', 'block', 'important');
+			console.log('[POPUP] Showing GitHub section', index);
+		} else {
+			section.style.setProperty('display', 'none', 'important');
+			console.log('[POPUP] Hiding GitHub section', index);
+		}
+	});
+
+	// Show/hide GitLab-specific sections
+	const gitlabSections = document.querySelectorAll('.gitlabOnlySection');
+	console.log('[POPUP] Found GitLab sections:', gitlabSections.length);
+	gitlabSections.forEach((section, index) => {
+		if (platform === 'gitlab') {
+			section.style.setProperty('display', 'block', 'important');
+			console.log('[POPUP] Showing GitLab section', index);
+		} else {
+			section.style.setProperty('display', 'none', 'important');
+			console.log('[POPUP] Hiding GitLab section', index);
+		}
+	});
+
+	// Update organization tooltip and label based on platform
+	const orgTooltip = document.getElementById('orgNameTooltipText');
+	const orgLabelText = document.getElementById('orgNameLabelText');
+
+	if (orgTooltip) {
+		if (platform === 'gitlab') {
+			const gitlabTooltip = chrome.i18n.getMessage('orgNameTooltipGitLab');
+			if (gitlabTooltip) {
+				orgTooltip.innerHTML = gitlabTooltip;
+			} else {
+				orgTooltip.innerHTML =
+					"<b>Which organization/group's GitLab activity?</b><br>Enter the GitLab organization or group name to fetch activities for. Leave empty to fetch all your GitLab activities across all projects. Organization name is not case-sensitive.";
+			}
+
+			// Update label for GitLab
+			if (orgLabelText) {
+				orgLabelText.textContent = 'Your GitLab Organization/Group Name';
+			}
+		} else {
+			const githubTooltip = chrome.i18n.getMessage('orgNameTooltip');
+			if (githubTooltip) {
+				orgTooltip.innerHTML = githubTooltip;
+			} else {
+				orgTooltip.innerHTML =
+					"<b>Which organization's GitHub activity?</b><br>Enter the GitHub organization name to fetch activities for. Leave empty to fetch all your GitHub activities across all organizations. Organization name is not case-sensitive.";
+			}
+
+			if (orgLabelText) {
+				orgLabelText.textContent = 'Your GitHub Organization Name';
+			}
+		}
+	}
+	const showOpenLabelText = document.getElementById('showOpenLabelText');
+	const showCommitsLabelText = document.getElementById('showCommitsLabelText');
+	const notePoint1Text = document.getElementById('notePoint1Text');
+
+	if (platform === 'gitlab') {
+		if (showOpenLabelText) {
+			const gitlabLabel = chrome.i18n.getMessage('showOpenClosedLabelGitLab');
+			showOpenLabelText.textContent = gitlabLabel || 'Show MRs Labels';
+		}
+		if (showCommitsLabelText) {
+			const gitlabCommitsLabel = chrome.i18n.getMessage('showCommitsLabelGitLab');
+			showCommitsLabelText.textContent = gitlabCommitsLabel || 'Show commits on open MRs/ draft MRs';
+		}
+		if (notePoint1Text) {
+			const gitlabNote = chrome.i18n.getMessage('notePoint1GitLab');
+			notePoint1Text.textContent =
+				gitlabNote ||
+				'Merge requests are fetched based on the most recent review activity by any contributor, not just your own. Please review and adjust the generated SCRUM report to ensure it accurately reflects your work before sharing.';
+		}
+	} else {
+		if (showOpenLabelText) {
+			const githubLabel = chrome.i18n.getMessage('showOpenClosedLabel');
+			showOpenLabelText.textContent = githubLabel || 'Show PRs Labels';
+		}
+		if (showCommitsLabelText) {
+			const githubCommitsLabel = chrome.i18n.getMessage('showCommitsLabel');
+			showCommitsLabelText.textContent = githubCommitsLabel || 'Show commits on open PRs/ draft PRs';
+		}
+		if (notePoint1Text) {
+			const githubNote = chrome.i18n.getMessage('notePoint1');
+			notePoint1Text.textContent =
+				githubNote ||
+				'Pull requests are fetched based on the most recent review activity by any contributor, not just your own. Please review and adjust the generated SCRUM report to ensure it accurately reflects your work before sharing.';
+		}
+	}
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+	// Apply translations as soon as the DOM is ready
+	applyI18n();
+
+	// Dark mode setup
+	const darkModeToggle = document.querySelector('img[alt="Night Mode"]');
+	const settingsIcon = document.getElementById('settingsIcon');
+	const body = document.body;
+	const homeButton = document.getElementById('homeButton');
+	const scrumHelperHeading = document.getElementById('scrumHelperHeading');
+	const settingsToggle = document.getElementById('settingsToggle');
+	const reportSection = document.getElementById('reportSection');
+	const settingsSection = document.getElementById('settingsSection');
+
+	let isSettingsVisible = false;
+	const githubTokenInput = document.getElementById('githubToken');
+	const toggleTokenBtn = document.getElementById('toggleTokenVisibility');
+	const tokenEyeIcon = document.getElementById('tokenEyeIcon');
+	let tokenVisible = false;
+
+	const _orgInput = document.getElementById('orgInput');
+
+	const platformSelect = document.getElementById('platformSelect');
+	const _usernameLabel = document.getElementById('usernameLabel');
+	const _platformUsername = document.getElementById('platformUsername');
+
+	function checkTokenForFilter() {
+		const useRepoFilter = document.getElementById('useRepoFilter');
+		const githubTokenInput = document.getElementById('githubToken');
+		const tokenWarning = document.getElementById('tokenWarningForFilter');
+		const repoFilterContainer = document.getElementById('repoFilterContainer');
+
+		if (!useRepoFilter || !githubTokenInput || !tokenWarning || !repoFilterContainer) {
+			return;
+		}
+		const isFilterEnabled = useRepoFilter.checked;
+		const hasToken = githubTokenInput.value.trim() !== '';
+
+		if (isFilterEnabled && !hasToken) {
+			useRepoFilter.checked = false;
+			repoFilterContainer.classList.add('hidden');
+			if (typeof hideDropdown === 'function') {
+				hideDropdown();
+			}
+			chrome.storage.local.set({ useRepoFilter: false });
+		}
+		tokenWarning.classList.toggle('hidden', !isFilterEnabled || hasToken);
+		setTimeout(() => {
+			tokenWarning.classList.add('hidden');
+		}, 4000);
+	}
+
+	chrome.storage.local.get(['darkMode'], (result) => {
+		if (result.darkMode) {
+			body.classList.add('dark-mode');
+			darkModeToggle.src = 'icons/light-mode.png';
+			if (settingsIcon) {
+				settingsIcon.src = 'icons/settings-night.png';
+			}
+		}
+	});
+
+	toggleTokenBtn.addEventListener('click', () => {
+		tokenVisible = !tokenVisible;
+		githubTokenInput.type = tokenVisible ? 'text' : 'password';
+
+		tokenEyeIcon.classList.add('eye-animating');
+		setTimeout(() => tokenEyeIcon.classList.remove('eye-animating'), 400);
+		tokenEyeIcon.className = tokenVisible ? 'fa fa-eye-slash text-gray-600' : 'fa fa-eye text-gray-600';
+
+		githubTokenInput.classList.add('token-animating');
+		setTimeout(() => githubTokenInput.classList.remove('token-animating'), 300);
+	});
+
+	// GitLab token visibility toggle
+	const gitlabTokenInput = document.getElementById('gitlabToken');
+	const toggleGitlabTokenBtn = document.getElementById('toggleGitlabTokenVisibility');
+	const gitlabTokenEyeIcon = document.getElementById('gitlabTokenEyeIcon');
+	let gitlabTokenVisible = false;
+
+	if (toggleGitlabTokenBtn && gitlabTokenInput && gitlabTokenEyeIcon) {
+		toggleGitlabTokenBtn.addEventListener('click', () => {
+			gitlabTokenVisible = !gitlabTokenVisible;
+			gitlabTokenInput.type = gitlabTokenVisible ? 'text' : 'password';
+
+			gitlabTokenEyeIcon.classList.add('eye-animating');
+			setTimeout(() => gitlabTokenEyeIcon.classList.remove('eye-animating'), 400);
+			gitlabTokenEyeIcon.className = gitlabTokenVisible ? 'fa fa-eye-slash text-gray-600' : 'fa fa-eye text-gray-600';
+
+			gitlabTokenInput.classList.add('token-animating');
+			setTimeout(() => gitlabTokenInput.classList.remove('token-animating'), 300);
+		});
+	}
+
+	// GitLab token validation (Test Token button)
+	const testGitlabTokenBtn = document.getElementById('testGitlabToken');
+	const gitlabTokenValidation = document.getElementById('gitlabTokenValidation');
+	const gitlabTokenValidationText = document.getElementById('gitlabTokenValidationText');
+
+	if (testGitlabTokenBtn && gitlabTokenInput) {
+		testGitlabTokenBtn.addEventListener('click', async () => {
+			const token = gitlabTokenInput.value.trim();
+
+			if (!token) {
+				// Show error message
+				gitlabTokenValidation.className = 'text-xs mt-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200';
+				gitlabTokenValidationText.innerHTML = '<i class="fa fa-exclamation-circle"></i> Please enter a token first';
+				gitlabTokenValidation.classList.remove('hidden');
+
+				setTimeout(() => {
+					gitlabTokenValidation.classList.add('hidden');
+				}, 3000);
+				return;
+			}
+
+			// Disable button and show loading state
+			testGitlabTokenBtn.disabled = true;
+			const originalHTML = testGitlabTokenBtn.innerHTML;
+			testGitlabTokenBtn.innerHTML =
+				'<i class="fa fa-spinner fa-spin"></i> <span data-i18n="testingTokenButton">Testing...</span>';
+
+			try {
+				// Create helper instance and validate
+				const helper = new window.GitLabHelper(token);
+				const result = await helper.validateToken();
+
+				if (result.valid) {
+					// Show success message
+					gitlabTokenValidation.className =
+						'text-xs mt-2 px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-green-700';
+					// Sanitize user data to prevent XSS
+					const safeUsername = escapeHTML(result.user.username);
+					const safeName = result.user.name ? ` (${escapeHTML(result.user.name)})` : '';
+					gitlabTokenValidationText.innerHTML = `<i class="fa fa-check-circle"></i> <strong>Valid!</strong> Authenticated as <strong>${safeUsername}</strong>${safeName}`;
+					gitlabTokenValidation.classList.remove('hidden');
+
+					testGitlabTokenBtn.innerHTML = '<i class="fa fa-check"></i> <span data-i18n="tokenValidButton">Valid!</span>';
+					testGitlabTokenBtn.classList.remove('bg-blue-50', 'hover:bg-blue-100', 'text-blue-600');
+					testGitlabTokenBtn.classList.add('bg-green-50', 'text-green-600');
+				} else {
+					// Show error message with more context
+					let errorMessage = result.message || result.error;
+
+					// Add helpful context based on error type
+					if (errorMessage.includes('401') || errorMessage.includes('Invalid')) {
+						errorMessage = chrome.i18n.getMessage('tokenAuthError');
+					} else if (errorMessage.includes('403') || errorMessage.includes('permissions')) {
+						errorMessage = chrome.i18n.getMessage('tokenPermissionError');
+					} else if (errorMessage.includes('rate limit') || errorMessage.includes('429')) {
+						errorMessage = chrome.i18n.getMessage('tokenRateLimitError');
+					} else if (errorMessage.includes('timeout')) {
+						errorMessage = chrome.i18n.getMessage('tokenTimeoutError');
+					} else if (errorMessage.includes('Network')) {
+						errorMessage = chrome.i18n.getMessage('tokenNetworkError');
+					}
+
+					gitlabTokenValidation.className =
+						'text-xs mt-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700';
+					gitlabTokenValidationText.innerHTML = `<i class="fa fa-exclamation-circle"></i> <strong>Invalid:</strong> ${errorMessage}`;
+					gitlabTokenValidation.classList.remove('hidden');
+
+					testGitlabTokenBtn.innerHTML =
+						'<i class="fa fa-times"></i> <span data-i18n="tokenInvalidButton">Invalid</span>';
+					testGitlabTokenBtn.classList.remove('bg-blue-50', 'hover:bg-blue-100', 'text-blue-600');
+					testGitlabTokenBtn.classList.add('bg-red-50', 'text-red-600');
+				}
+
+				// Reset button after 3 seconds
+				setTimeout(() => {
+					testGitlabTokenBtn.innerHTML = originalHTML;
+					testGitlabTokenBtn.disabled = false;
+					testGitlabTokenBtn.className =
+						'mt-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg transition-colors';
+					gitlabTokenValidation.classList.add('hidden');
+				}, 3000);
+			} catch (error) {
+				console.error('[POPUP] Token validation error:', error);
+
+				// Parse error message for better user feedback
+				let userMessage = error.message;
+				if (userMessage.includes('timeout')) {
+					userMessage = chrome.i18n.getMessage('tokenTimeoutError');
+				} else if (userMessage.includes('Network') || userMessage.includes('Failed to fetch')) {
+					userMessage = chrome.i18n.getMessage('tokenNetworkError');
+				} else if (userMessage.includes('rate limit')) {
+					userMessage = chrome.i18n.getMessage('tokenRateLimitError');
+				}
+
+				gitlabTokenValidation.className =
+					'text-xs mt-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-700';
+				gitlabTokenValidationText.innerHTML = `<i class="fa fa-exclamation-circle"></i> <strong>Error:</strong> ${userMessage}`;
+				gitlabTokenValidation.classList.remove('hidden');
+
+				testGitlabTokenBtn.innerHTML = originalHTML;
+				testGitlabTokenBtn.disabled = false;
+
+				setTimeout(() => {
+					gitlabTokenValidation.classList.add('hidden');
+				}, 3000);
+			}
+		});
+	}
+
+	// Clear GitLab Token button handler
+	const clearGitlabTokenBtn = document.getElementById('clearGitlabToken');
+	if (clearGitlabTokenBtn && gitlabTokenInput) {
+		clearGitlabTokenBtn.addEventListener('click', () => {
+			if (gitlabTokenInput.value.trim()) {
+				// Confirm before clearing
+				if (
+					confirm(chrome.i18n.getMessage('confirmClearToken') || 'Are you sure you want to clear the GitLab token?')
+				) {
+					gitlabTokenInput.value = '';
+					chrome.storage.local.set({ gitlabToken: '' });
+
+					// Show feedback
+					if (gitlabTokenValidation && gitlabTokenValidationText) {
+						gitlabTokenValidation.className =
+							'text-xs mt-2 px-3 py-2 rounded-lg bg-gray-100 border border-gray-300 text-gray-700';
+						gitlabTokenValidationText.innerHTML = '<i class="fa fa-info-circle"></i> Token cleared successfully';
+						gitlabTokenValidation.classList.remove('hidden');
+
+						setTimeout(() => {
+							gitlabTokenValidation.classList.add('hidden');
+						}, 2000);
+					}
+				}
+			}
+		});
+	}
+
+	githubTokenInput.addEventListener('input', checkTokenForFilter);
+
+	darkModeToggle.addEventListener('click', function () {
+		body.classList.toggle('dark-mode');
+		const isDarkMode = body.classList.contains('dark-mode');
+		chrome.storage.local.set({ darkMode: isDarkMode });
+		this.src = isDarkMode ? 'icons/light-mode.png' : 'icons/night-mode.png';
+		const settingsIcon = document.getElementById('settingsIcon');
+		if (settingsIcon) {
+			settingsIcon.src = isDarkMode ? 'icons/settings-night.png' : 'icons/settings-light.png';
+		}
+	});
+
+	function updateContentState(enableToggle) {
+		console.log('[DEBUG] updateContentState called with:', enableToggle);
+		const elementsToToggle = [
+			'startingDate',
+			'endingDate',
+			'generateReport',
+			'copyReport',
+			'exportReport',
+			'refreshCache',
+			'showOpenLabel',
+			'showCommits',
+			'scrumReport',
+			'githubUsername',
+			'githubToken',
+			'projectName',
+			'platformUsername',
+			'orgInput',
+			'cacheInput',
+			'settingsToggle',
+		];
+
+		const radios = document.querySelectorAll('input[name="timeframe"]');
+		const customDateContainer = document.getElementById('customDateContainer');
+
+		elementsToToggle.forEach((id) => {
+			const element = document.getElementById(id);
+			if (element) {
+				element.disabled = !enableToggle;
+				if (!enableToggle) {
+					element.style.opacity = '0.5';
+					element.style.pointerEvents = 'none';
+				} else {
+					element.style.opacity = '1';
+					element.style.pointerEvents = 'auto';
+				}
+			}
+		});
+
+		radios.forEach((radio) => {
+			radio.disabled = !enableToggle;
+			const label = document.querySelector(`label[for="${radio.id}"]`);
+			if (label) {
+				if (!enableToggle) {
+					label.style.opacity = '0.5';
+					label.style.pointerEvents = 'none';
+				} else {
+					label.style.opacity = '1';
+					label.style.pointerEvents = 'auto';
+				}
+			}
+		});
+
+		if (customDateContainer) {
+			if (!enableToggle) {
+				customDateContainer.style.opacity = '0.5';
+				customDateContainer.style.pointerEvents = 'none';
+			} else {
+				customDateContainer.style.opacity = '1';
+				customDateContainer.style.pointerEvents = 'auto';
+			}
+		}
+
+		const scrumReport = document.getElementById('scrumReport');
+		if (scrumReport) {
+			scrumReport.contentEditable = enableToggle;
+			if (!enableToggle) {
+				scrumReport.innerHTML = `<p style="text-align: center; color: #999; padding: 20px;">${chrome.i18n.getMessage('extensionDisabledMessage')}</p>`;
+			} else {
+				const disabledMessage = `<p style="text-align: center; color: #999; padding: 20px;">${chrome.i18n.getMessage('extensionDisabledMessage')}</p>`;
+				if (scrumReport.innerHTML === disabledMessage) {
+					scrumReport.innerHTML = '';
+				}
+			}
+		}
+	}
+
+	chrome.storage.local.get(['enableToggle'], (items) => {
+		console.log('[DEBUG] Storage items received:', items);
+		const enableToggle = items.enableToggle !== false;
+		console.log('[DEBUG] enableToggle calculated:', enableToggle);
+
+		// If enableToggle is undefined (first install), set it to true by default
+		if (typeof items.enableToggle === 'undefined') {
+			console.log('[DEBUG] Setting default enableToggle to true');
+			chrome.storage.local.set({ enableToggle: true });
+		}
+
+		console.log('[DEBUG] Calling updateContentState with:', enableToggle);
+		updateContentState(enableToggle);
+		if (!enableToggle) {
+			console.log('[DEBUG] Extension disabled, returning early');
+			return;
+		}
+
+		console.log('[DEBUG] Extension enabled, initializing popup');
+		initializePopup();
+		checkTokenForFilter();
+	});
+
+	chrome.storage.onChanged.addListener((changes, namespace) => {
+		console.log('[DEBUG] Storage changed:', changes, namespace);
+		if (namespace === 'local' && changes.enableToggle) {
+			console.log('[DEBUG] enableToggle changed to:', changes.enableToggle.newValue);
+			updateContentState(changes.enableToggle.newValue);
+			if (changes.enableToggle.newValue) {
+				// re-initialize if enabled
+				console.log('[DEBUG] Re-initializing popup due to enable toggle change');
+				initializePopup();
+			}
+		}
+		if (changes.startingDate || changes.endingDate) {
+			console.log('[POPUP-DEBUG] Date changed in storage, triggering repo fetch.', {
+				startingDate: changes.startingDate?.newValue,
+				endingDate: changes.endingDate?.newValue,
+			});
+			if (window.triggerRepoFetchIfEnabled) {
+				window.triggerRepoFetchIfEnabled();
+			}
+		}
+	});
+
+	function initializePopup() {
+		// Migration: Handle existing users with old platformUsername storage
+		chrome.storage.local.get(['platform', 'platformUsername'], (result) => {
+			if (result.platformUsername && result.platform) {
+				// Migrate old platformUsername to platform-specific storage
+				const platformUsernameKey = `${result.platform}Username`;
+				chrome.storage.local.set({ [platformUsernameKey]: result.platformUsername });
+				// Remove the old key
+				chrome.storage.local.remove(['platformUsername']);
+				console.log(`[MIGRATION] Migrated platformUsername to ${platformUsernameKey}`);
+			}
+		});
+
+		// Restore all persistent fields immediately on DOMContentLoaded
+		const projectNameInput = document.getElementById('projectName');
+		const orgInput = document.getElementById('orgInput');
+		const userReasonInput = document.getElementById('userReason');
+		const showOpenLabelCheckbox = document.getElementById('showOpenLabel');
+		const showCommitsCheckbox = document.getElementById('showCommits');
+		const githubTokenInput = document.getElementById('githubToken');
+		const gitlabTokenInput = document.getElementById('gitlabToken');
+		const cacheInput = document.getElementById('cacheInput');
+		const enableToggleSwitch = document.getElementById('enable');
+		const yesterdayRadio = document.getElementById('yesterdayContribution');
+		const startingDateInput = document.getElementById('startingDate');
+		const endingDateInput = document.getElementById('endingDate');
+		const platformUsername = document.getElementById('platformUsername');
+
+		chrome.storage.local.get(
+			[
+				'projectName',
+				'orgName',
+				'userReason',
+				'showOpenLabel',
+				'showCommits',
+				'githubToken',
+				'gitlabToken',
+				'cacheInput',
+				'enableToggle',
+				'yesterdayContribution',
+				'startingDate',
+				'endingDate',
+				'selectedTimeframe',
+				'platform',
+				'githubUsername',
+				'gitlabUsername',
+			],
+			(result) => {
+				if (result.projectName) projectNameInput.value = result.projectName;
+				if (result.orgName) orgInput.value = result.orgName;
+				if (result.userReason) userReasonInput.value = result.userReason;
+				if (typeof result.showOpenLabel !== 'undefined') {
+					showOpenLabelCheckbox.checked = result.showOpenLabel;
+				} else {
+					showOpenLabelCheckbox.checked = true; // Default to true for new users
+				}
+				if (typeof result.showCommits !== 'undefined') showCommitsCheckbox.checked = result.showCommits;
+				if (result.githubToken) githubTokenInput.value = result.githubToken;
+				if (result.gitlabToken && gitlabTokenInput) gitlabTokenInput.value = result.gitlabToken;
+				if (result.cacheInput) cacheInput.value = result.cacheInput;
+				if (enableToggleSwitch) {
+					if (typeof result.enableToggle !== 'undefined') {
+						enableToggleSwitch.checked = result.enableToggle;
+					} else {
+						enableToggleSwitch.checked = true; // Default to enabled
+					}
+				}
+				if (typeof result.yesterdayContribution !== 'undefined') yesterdayRadio.checked = result.yesterdayContribution;
+				if (result.startingDate) startingDateInput.value = result.startingDate;
+				if (result.endingDate) endingDateInput.value = result.endingDate;
+
+				// Load platform-specific username
+				const platform = result.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				platformUsername.value = result[platformUsernameKey] || '';
+
+				// Update platform-specific UI visibility
+				updatePlatformUI(platform);
+			},
+		);
+
+		// Button setup
+		const generateBtn = document.getElementById('generateReport');
+		const copyBtn = document.getElementById('copyReport');
+
+		generateBtn.addEventListener('click', () => {
+			chrome.storage.local.get(['platform'], (result) => {
+				const platform = result.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+
+				chrome.storage.local.set(
+					{
+						platform: platformSelect.value,
+						[platformUsernameKey]: platformUsername.value,
+					},
+					() => {
+						// Reload platform from storage before generating report
+						chrome.storage.local.get(['platform'], (res) => {
+							platformSelect.value = res.platform || 'github';
+							updatePlatformUI(platformSelect.value);
+							generateBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Generating...';
+							generateBtn.disabled = true;
+							window.generateScrumReport?.();
+						});
+					},
+				);
+			});
+		});
+
+		copyBtn.addEventListener('click', function () {
+			const scrumReport = document.getElementById('scrumReport');
+			const tempDiv = document.createElement('div');
+			tempDiv.innerHTML = scrumReport.innerHTML;
+			document.body.appendChild(tempDiv);
+			tempDiv.style.position = 'absolute';
+			tempDiv.style.left = '-9999px';
+
+			const range = document.createRange();
+			range.selectNode(tempDiv);
+			const selection = window.getSelection();
+			selection.removeAllRanges();
+			selection.addRange(range);
+
+			try {
+				document.execCommand('copy');
+				this.innerHTML = `<i class="fa fa-check"></i> ${chrome.i18n.getMessage('copiedButton')}`;
+				setTimeout(() => {
+					this.innerHTML = `<i class="fa fa-copy"></i> ${chrome.i18n.getMessage('copyReportButton')}`;
+				}, 2000);
+			} catch (err) {
+				console.error('Failed to copy: ', err);
+			} finally {
+				selection.removeAllRanges();
+				document.body.removeChild(tempDiv);
+			}
+		});
+
+		const exportBtn = document.getElementById('exportReport');
+		const exportMenu = document.getElementById('exportMenu');
+		const exportHTML = document.getElementById('exportHTML');
+		const exportMarkdown = document.getElementById('exportMarkdown');
+		const exportText = document.getElementById('exportText');
+
+		exportBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			exportMenu.classList.toggle('hidden');
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+				exportMenu.classList.add('hidden');
+			}
+		});
+
+		function getFormattedFileName(extension) {
+			chrome.storage.local.get(['startingDate', 'endingDate', 'platform', 'platformUsername', 'githubUsername', 'gitlabUsername'], (result) => {
+				const platform = result.platform || 'github';
+				const username = result[`${platform}Username`] || result.githubUsername || result.gitlabUsername || 'user';
+				const startDate = result.startingDate || getYesterday();
+				const endDate = result.endingDate || getToday();
+				
+				const formatDate = (dateStr) => {
+					const date = new Date(dateStr);
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				};
+				
+				const formattedStart = formatDate(startDate);
+				const formattedEnd = formatDate(endDate);
+				const fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.${extension}`;
+				return fileName;
+			});
+		}
+
+		function htmlToMarkdown(html) {
+			let markdown = html;
+			
+			markdown = markdown.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n');
+			markdown = markdown.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n');
+			markdown = markdown.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n');
+			markdown = markdown.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n');
+			
+			markdown = markdown.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+			markdown = markdown.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+			markdown = markdown.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+			markdown = markdown.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+			
+			markdown = markdown.replace(/<a[^>]*href=["'](.*?)["'][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+			
+			markdown = markdown.replace(/<ul[^>]*>/gi, '\n');
+			markdown = markdown.replace(/<\/ul>/gi, '\n');
+			markdown = markdown.replace(/<ol[^>]*>/gi, '\n');
+			markdown = markdown.replace(/<\/ol>/gi, '\n');
+			markdown = markdown.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+			
+			markdown = markdown.replace(/<br\s*\/?>/gi, '\n');
+			markdown = markdown.replace(/<\/p>/gi, '\n\n');
+			markdown = markdown.replace(/<p[^>]*>/gi, '');
+			markdown = markdown.replace(/<\/div>/gi, '\n');
+			markdown = markdown.replace(/<div[^>]*>/gi, '');
+			
+			markdown = markdown.replace(/<[^>]+>/g, '');
+			
+			markdown = markdown.replace(/&nbsp;/g, ' ');
+			markdown = markdown.replace(/&amp;/g, '&');
+			markdown = markdown.replace(/&lt;/g, '<');
+			markdown = markdown.replace(/&gt;/g, '>');
+			markdown = markdown.replace(/&quot;/g, '"');
+			markdown = markdown.replace(/&#39;/g, "'");
+			
+			markdown = markdown.replace(/\n{3,}/g, '\n\n');
+			markdown = markdown.trim();
+			
+			return markdown;
+		}
+
+		function htmlToPlainText(html) {
+			let text = html;
+			
+			text = text.replace(/<br\s*\/?>/gi, '\n');
+			text = text.replace(/<\/p>/gi, '\n\n');
+			text = text.replace(/<\/div>/gi, '\n');
+			text = text.replace(/<\/li>/gi, '\n');
+			text = text.replace(/<\/h[1-6]>/gi, '\n\n');
+			
+			text = text.replace(/<[^>]+>/g, '');
+			
+			text = text.replace(/&nbsp;/g, ' ');
+			text = text.replace(/&amp;/g, '&');
+			text = text.replace(/&lt;/g, '<');
+			text = text.replace(/&gt;/g, '>');
+			text = text.replace(/&quot;/g, '"');
+			text = text.replace(/&#39;/g, "'");
+			
+			text = text.replace(/\n{3,}/g, '\n\n');
+			text = text.trim();
+			
+			return text;
+		}
+
+		function downloadFile(content, fileName, mimeType) {
+			const blob = new Blob([content], { type: mimeType });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = fileName;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		}
+
+		function exportReport(format) {
+			const scrumReport = document.getElementById('scrumReport');
+			const reportContent = scrumReport.innerHTML;
+			
+			if (!reportContent || reportContent.trim() === '') {
+				alert('Please generate a report first before exporting.');
+				return;
+			}
+			
+			chrome.storage.local.get(['startingDate', 'endingDate', 'platform', 'platformUsername', 'githubUsername', 'gitlabUsername'], (result) => {
+				const platform = result.platform || 'github';
+				const username = result[`${platform}Username`] || result.githubUsername || result.gitlabUsername || 'user';
+				const startDate = result.startingDate || getYesterday();
+				const endDate = result.endingDate || getToday();
+				
+				const formatDate = (dateStr) => {
+					const date = new Date(dateStr);
+					const year = date.getFullYear();
+					const month = String(date.getMonth() + 1).padStart(2, '0');
+					const day = String(date.getDate()).padStart(2, '0');
+					return `${year}-${month}-${day}`;
+				};
+				
+				const formattedStart = formatDate(startDate);
+				const formattedEnd = formatDate(endDate);
+				
+				let content, fileName, mimeType;
+				
+				if (format === 'html') {
+					const htmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrum Report - ${username} (${formattedStart} to ${formattedEnd})</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2563eb;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #2563eb;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scrum Report</h1>
+        <p><strong>User:</strong> ${username}</p>
+        <p><strong>Period:</strong> ${formattedStart} to ${formattedEnd}</p>
+        <p><strong>Platform:</strong> ${platform.charAt(0).toUpperCase() + platform.slice(1)}</p>
+        <hr>
+        ${reportContent}
+        <div class="footer">
+            <p>Generated by Scrum Helper Extension • ${new Date().toLocaleString()}</p>
+        </div>
+    </div>
+</body>
+</html>`;
+					content = htmlTemplate;
+					fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.html`;
+					mimeType = 'text/html';
+				} else if (format === 'markdown') {
+					const markdownContent = htmlToMarkdown(reportContent);
+					const markdownTemplate = `# Scrum Report\n\n**User:** ${username}\n**Period:** ${formattedStart} to ${formattedEnd}\n**Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)}\n\n---\n\n${markdownContent}\n\n---\n\n*Generated by Scrum Helper Extension on ${new Date().toLocaleString()}*`;
+					content = markdownTemplate;
+					fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.md`;
+					mimeType = 'text/markdown';
+				} else if (format === 'text') {
+					const textContent = htmlToPlainText(reportContent);
+					const textTemplate = `SCRUM REPORT\n${'='.repeat(60)}\n\nUser: ${username}\nPeriod: ${formattedStart} to ${formattedEnd}\nPlatform: ${platform.charAt(0).toUpperCase() + platform.slice(1)}\n\n${'='.repeat(60)}\n\n${textContent}\n\n${'='.repeat(60)}\n\nGenerated by Scrum Helper Extension\n${new Date().toLocaleString()}`;
+					content = textTemplate;
+					fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.txt`;
+					mimeType = 'text/plain';
+				}
+				
+				downloadFile(content, fileName, mimeType);
+				exportMenu.classList.add('hidden');
+				
+				exportBtn.innerHTML = '<i class="fa fa-check"></i> Exported';
+				setTimeout(() => {
+					exportBtn.innerHTML = '<i class="fa fa-download"></i> <span data-i18n="exportReportButton">Export</span>';
+				}, 2000);
+			});
+		}
+
+		exportHTML.addEventListener('click', () => exportReport('html'));
+		exportMarkdown.addEventListener('click', () => exportReport('markdown'));
+		exportText.addEventListener('click', () => exportReport('text'));
+
+		// Custom date container click handler
+		document.getElementById('customDateContainer').addEventListener('click', () => {
+			document.querySelectorAll('input[name="timeframe"]').forEach((radio) => {
+				radio.checked = false;
+				radio.dataset.wasChecked = 'false';
+			});
+
+			const startDateInput = document.getElementById('startingDate');
+			const endDateInput = document.getElementById('endingDate');
+			startDateInput.readOnly = false;
+			endDateInput.readOnly = false;
+
+			chrome.storage.local.set({
+				yesterdayContribution: false,
+				selectedTimeframe: null,
+			});
+		});
+
+		chrome.storage.local.get(['selectedTimeframe', 'yesterdayContribution', 'startingDate', 'endingDate'], (items) => {
+			console.log('Restoring state:', items);
+
+			if (items.startingDate && items.endingDate && !items.yesterdayContribution) {
+				const startDateInput = document.getElementById('startingDate');
+				const endDateInput = document.getElementById('endingDate');
+
+				if (startDateInput && endDateInput) {
+					startDateInput.value = items.startingDate;
+					endDateInput.value = items.endingDate;
+					startDateInput.readOnly = false;
+					endDateInput.readOnly = false;
+				}
+				document.querySelectorAll('input[name="timeframe"]').forEach((radio) => {
+					radio.checked = false;
+					radio.dataset.wasChecked = 'false';
+				});
+				return;
+			}
+
+			if (!items.selectedTimeframe) {
+				items.selectedTimeframe = 'yesterdayContribution';
+				items.yesterdayContribution = true;
+			}
+
+			const radio = document.getElementById(items.selectedTimeframe);
+			if (radio) {
+				radio.checked = true;
+				radio.dataset.wasChecked = 'true';
+
+				const startDateInput = document.getElementById('startingDate');
+				const endDateInput = document.getElementById('endingDate');
+
+				if (items.selectedTimeframe === 'yesterdayContribution') {
+					startDateInput.value = getYesterday();
+					endDateInput.value = getToday();
+				}
+				startDateInput.readOnly = endDateInput.readOnly = true;
+
+				chrome.storage.local.set({
+					startingDate: startDateInput.value,
+					endingDate: endDateInput.value,
+					yesterdayContribution: items.selectedTimeframe === 'yesterdayContribution',
+					selectedTimeframe: items.selectedTimeframe,
+				});
+			}
+		});
+
+		// Save all fields to storage on input/change
+		projectNameInput.addEventListener('input', () => {
+			chrome.storage.local.set({ projectName: projectNameInput.value });
+		});
+
+		// Save to storage and validate ONLY when user clicks out (blur event)
+		orgInput.addEventListener('blur', () => {
+			const org = orgInput.value.trim().toLowerCase();
+			chrome.storage.local.set({ orgName: org });
+
+			// Only validate if org name is not empty
+			if (org) {
+				// Get current platform to validate correctly
+				chrome.storage.local.get(['platform'], (result) => {
+					const currentPlatform = result.platform || 'github';
+					validateOrgOnBlur(org, currentPlatform);
+				});
+			} else {
+				// Clear any existing toast if org is empty
+				const oldToast = document.getElementById('invalid-org-toast');
+				if (oldToast) oldToast.parentNode.removeChild(oldToast);
+			}
+		});
+		if (userReasonInput) {
+			userReasonInput.addEventListener('input', () => {
+				chrome.storage.local.set({ userReason: userReasonInput.value });
+			});
+		}
+		showOpenLabelCheckbox.addEventListener('change', () => {
+			chrome.storage.local.set({ showOpenLabel: showOpenLabelCheckbox.checked });
+		});
+		showCommitsCheckbox.addEventListener('change', () => {
+			chrome.storage.local.set({ showCommits: showCommitsCheckbox.checked });
+		});
+		githubTokenInput.addEventListener('input', () => {
+			chrome.storage.local.set({ githubToken: githubTokenInput.value });
+		});
+		if (gitlabTokenInput) {
+			gitlabTokenInput.addEventListener('input', () => {
+				chrome.storage.local.set({ gitlabToken: gitlabTokenInput.value });
+			});
+		}
+		cacheInput.addEventListener('input', () => {
+			chrome.storage.local.set({ cacheInput: cacheInput.value });
+		});
+		if (enableToggleSwitch) {
+			console.log('[DEBUG] Setting up enable toggle switch event listener');
+			enableToggleSwitch.addEventListener('change', () => {
+				console.log('[DEBUG] Enable toggle changed to:', enableToggleSwitch.checked);
+				chrome.storage.local.set({ enableToggle: enableToggleSwitch.checked });
+			});
+		}
+		yesterdayRadio.addEventListener('change', () => {
+			chrome.storage.local.set({ yesterdayContribution: yesterdayRadio.checked });
+		});
+		startingDateInput.addEventListener('input', () => {
+			chrome.storage.local.set({ startingDate: startingDateInput.value });
+		});
+		endingDateInput.addEventListener('input', () => {
+			chrome.storage.local.set({ endingDate: endingDateInput.value });
+		});
+
+		// Save username to storage on input
+		platformUsername.addEventListener('input', () => {
+			chrome.storage.local.get(['platform'], (result) => {
+				const platform = result.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				chrome.storage.local.set({ [platformUsernameKey]: platformUsername.value });
+			});
+		});
+	}
+
+	function showReportView() {
+		isSettingsVisible = false;
+		reportSection.classList.remove('hidden');
+		settingsSection.classList.add('hidden');
+		settingsToggle.classList.remove('active');
+	}
+
+	function showSettingsView() {
+		isSettingsVisible = true;
+		reportSection.classList.add('hidden');
+		settingsSection.classList.remove('hidden');
+		settingsToggle.classList.add('active');
+
+		// Update platform-specific UI when showing settings
+		chrome.storage.local.get(['platform'], (result) => {
+			const platform = result.platform || 'github';
+			updatePlatformUI(platform);
+		});
+	}
+
+	if (settingsToggle) {
+		settingsToggle.addEventListener('click', () => {
+			if (isSettingsVisible) {
+				showReportView();
+			} else {
+				showSettingsView();
+			}
+		});
+	}
+
+	if (homeButton) {
+		homeButton.addEventListener('click', showReportView);
+	}
+	if (scrumHelperHeading) {
+		scrumHelperHeading.addEventListener('click', showReportView);
+	}
+
+	showReportView();
+
+	// Debug function to test storage
+	window.testStorage = () => {
+		chrome.storage.local.get(['enableToggle'], (result) => {
+			console.log('[TEST] Current enableToggle value:', result.enableToggle);
+		});
+	};
+
+	//report filter
+	const repoSearch = document.getElementById('repoSearch');
+	const repoDropdown = document.getElementById('repoDropdown');
+	const _selectedReposDiv = document.getElementById('selectedRepos');
+	const repoTags = document.getElementById('repoTags');
+	const _repoPlaceholder = document.getElementById('repoPlaceholder');
+	const repoCount = document.getElementById('repoCount');
+	const repoStatus = document.getElementById('repoStatus');
+	const useRepoFilter = document.getElementById('useRepoFilter');
+	const repoFilterContainer = document.getElementById('repoFilterContainer');
+
+	if (repoSearch && useRepoFilter && repoFilterContainer) {
+		repoSearch.addEventListener('click', () => {
+			if (!useRepoFilter.checked) {
+				useRepoFilter.checked = true;
+				repoFilterContainer.classList.remove('hidden');
+				chrome.storage.local.set({ useRepoFilter: true });
+			}
+		});
+	}
+
+	if (!repoSearch || !useRepoFilter) {
+		console.log('Repository, filter elements not found in DOM');
+	} else {
+		let availableRepos = [];
+		let selectedRepos = [];
+		let highlightedIndex = -1;
+
+		async function triggerRepoFetchIfEnabled() {
+			// --- PLATFORM CHECK: Only run for GitHub ---
+			let platform = 'github';
+			try {
+				const items = await new Promise((resolve) => {
+					chrome.storage.local.get(['platform'], resolve);
+				});
+				platform = items.platform || 'github';
+			} catch (_e) {}
+			if (platform !== 'github') {
+				// Do not run repo fetch for non-GitHub platforms
+				if (repoStatus) repoStatus.textContent = 'Repository filtering is only available for GitHub.';
+				return;
+			}
+			if (!useRepoFilter.checked) {
+				return;
+			}
+
+			if (repoStatus) {
+				repoStatus.textContent = chrome.i18n.getMessage('repoRefetching');
+			}
+
+			try {
+				const _cacheData = await new Promise((resolve) => {
+					chrome.storage.local.get(['repoCache'], resolve);
+				});
+				const items = await new Promise((resolve) => {
+					chrome.storage.local.get(['platform', 'githubUsername', 'githubToken', 'orgName'], resolve);
+				});
+
+				const platform = items.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				const username = items[platformUsernameKey];
+
+				if (!username) {
+					if (repoStatus) {
+						repoStatus.textContent = 'Username required';
+					}
+					return;
+				}
+
+				if (window.fetchUserRepositories) {
+					const repos = await window.fetchUserRepositories(username, items.githubToken, items.orgName || '');
+
+					availableRepos = repos;
+
+					if (repoStatus) {
+						repoStatus.textContent = chrome.i18n.getMessage('repoLoaded', [repos.length]);
+					}
+
+					const repoCacheKey = `repos-${username}-${items.orgName || ''}`;
+					chrome.storage.local.set({
+						repoCache: {
+							data: repos,
+							cacheKey: repoCacheKey,
+							timestamp: Date.now(),
+						},
+					});
+
+					if (document.activeElement === repoSearch) {
+						filterAndDisplayRepos(repoSearch.value.toLowerCase());
+					} else if (repoSearch.value) {
+						filterAndDisplayRepos(repoSearch.value.toLowerCase());
+					} else {
+						filterAndDisplayRepos('');
+					}
+				}
+			} catch (err) {
+				if (repoStatus) {
+					repoStatus.textContent = `${chrome.i18n.getMessage('errorLabel')}: ${err.message || chrome.i18n.getMessage('repoRefetchFailed')}`;
+				}
+			}
+		}
+
+		window.triggerRepoFetchIfEnabled = triggerRepoFetchIfEnabled;
+
+		chrome.storage.local.get(['selectedRepos', 'useRepoFilter'], (items) => {
+			if (items.selectedRepos) {
+				selectedRepos = items.selectedRepos;
+				updateRepoDisplay();
+			}
+			if (items.useRepoFilter) {
+				useRepoFilter.checked = items.useRepoFilter;
+				repoFilterContainer.classList.toggle('hidden', !items.useRepoFilter);
+			}
+		});
+
+		useRepoFilter.addEventListener(
+			'change',
+			debounce(async () => {
+				// --- PLATFORM CHECK: Only run for GitHub ---
+				let platform = 'github';
+				try {
+					const items = await new Promise((resolve) => {
+						chrome.storage.local.get(['platform'], resolve);
+					});
+					platform = items.platform || 'github';
+				} catch (_e) {}
+				if (platform !== 'github') {
+					repoFilterContainer.classList.add('hidden');
+					useRepoFilter.checked = false;
+					if (repoStatus) repoStatus.textContent = 'Repository filtering is only available for GitHub.';
+					return;
+				}
+				const enabled = useRepoFilter.checked;
+				const hasToken = githubTokenInput.value.trim() !== '';
+				repoFilterContainer.classList.toggle('hidden', !enabled);
+
+				if (enabled && !hasToken) {
+					useRepoFilter.checked = false;
+					repoFilterContainer.classList.add('hidden'); // Explicitly hide the container
+					hideDropdown();
+					const tokenWarning = document.getElementById('tokenWarningForFilter');
+					if (tokenWarning) {
+						tokenWarning.classList.remove('hidden');
+						tokenWarning.classList.add('shake-animation');
+						setTimeout(() => tokenWarning.classList.remove('shake-animation'), 620);
+						setTimeout(() => {
+							tokenWarning.classList.add('hidden');
+						}, 3000);
+					}
+					return;
+				}
+				repoFilterContainer.classList.toggle('hidden', !enabled);
+
+				chrome.storage.local.set({
+					useRepoFilter: enabled,
+					githubCache: null, //forces refresh
+				});
+				checkTokenForFilter();
+				if (enabled) {
+					repoStatus.textContent = 'Loading repos automatically..';
+
+					try {
+						const cacheData = await new Promise((resolve) => {
+							chrome.storage.local.get(['repoCache'], resolve);
+						});
+						const items = await new Promise((resolve) => {
+							chrome.storage.local.get(['platform', 'githubUsername', 'githubToken', 'orgName'], resolve);
+						});
+
+						const platform = items.platform || 'github';
+						const platformUsernameKey = `${platform}Username`;
+						const username = items[platformUsernameKey];
+
+						if (!username) {
+							repoStatus.textContent = 'Github Username required';
+
+							return;
+						}
+
+						const repoCacheKey = `repos-${username}-${items.orgName || ''}`;
+
+						const now = Date.now();
+						const cacheAge = cacheData.repoCache?.timestamp ? now - cacheData.repoCache.timestamp : Infinity;
+						const cacheTTL = 10 * 60 * 1000; // 10 minutes
+
+						if (cacheData.repoCache && cacheData.repoCache.cacheKey === repoCacheKey && cacheAge < cacheTTL) {
+							console.log('Using cached repositories');
+							availableRepos = cacheData.repoCache.data;
+							repoStatus.textContent = chrome.i18n.getMessage('repoLoaded', [availableRepos.length]);
+
+							if (document.activeElement === repoSearch) {
+								filterAndDisplayRepos(repoSearch.value.toLowerCase());
+							}
+							return;
+						}
+
+						if (window.fetchUserRepositories) {
+							const repos = await window.fetchUserRepositories(
+								username,
+
+								items.githubToken,
+								items.orgName || '',
+							);
+							availableRepos = repos;
+							repoStatus.textContent = chrome.i18n.getMessage('repoLoaded', [repos.length]);
+
+							chrome.storage.local.set({
+								repoCache: {
+									data: repos,
+									cacheKey: repoCacheKey,
+									timestamp: now,
+								},
+							});
+
+							if (document.activeElement === repoSearch) {
+								filterAndDisplayRepos(repoSearch.value.toLowerCase());
+							}
+						}
+					} catch (err) {
+						console.error('Auto load repos failed', err);
+
+						if (err.message?.includes('401')) {
+							repoStatus.textContent = chrome.i18n.getMessage('repoTokenPrivate');
+						} else if (err.message?.includes('username')) {
+							repoStatus.textContent = chrome.i18n.getMessage('githubUsernamePlaceholder');
+						} else {
+							repoStatus.textContent = `${chrome.i18n.getMessage('errorLabel')}: ${err.message || chrome.i18n.getMessage('repoLoadFailed')}`;
+						}
+					}
+				} else {
+					selectedRepos = [];
+					updateRepoDisplay();
+					chrome.storage.local.set({ selectedRepos: [] });
+					repoStatus.textContent = '';
+				}
+			}, 300),
+		);
+
+		repoSearch.addEventListener('keydown', (e) => {
+			const items = repoDropdown.querySelectorAll('.repository-dropdown-item');
+
+			switch (e.key) {
+				case 'ArrowDown':
+					e.preventDefault();
+					highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+					updateHighlight(items);
+					break;
+				case 'ArrowUp':
+					e.preventDefault();
+					highlightedIndex = Math.max(highlightedIndex - 1, 0);
+					updateHighlight(items);
+					break;
+				case 'Enter':
+					e.preventDefault();
+					if (highlightedIndex >= 0 && items[highlightedIndex]) {
+						fnSelectedRepos(items[highlightedIndex].dataset.repoName);
+					}
+					break;
+				case 'Escape':
+					hideDropdown();
+					break;
+			}
+		});
+
+		repoSearch.addEventListener('input', (e) => {
+			const query = e.target.value.toLowerCase();
+			filterAndDisplayRepos(query);
+		});
+		let programmaticFocus = false;
+		repoSearch.addEventListener('focus', () => {
+			if (programmaticFocus) {
+				programmaticFocus = false;
+				return;
+			}
+			if (repoSearch.value) {
+				filterAndDisplayRepos(repoSearch.value.toLowerCase());
+			} else if (availableRepos.length > 0) {
+				filterAndDisplayRepos('');
+			}
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!e.target.closest('#repoSearch') && !e.target.closest('#repoDropdown')) {
+				hideDropdown();
+			}
+		});
+
+		const debugRepoFetch = () => {
+			chrome.storage.local.get(['platform', 'githubUsername', 'githubToken', 'orgName'], (items) => {
+				const platform = items.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				const username = items[platformUsernameKey];
+				console.log('Current settings:', {
+					username: username,
+					hasToken: !!items.githubToken,
+					org: items.orgName || '',
+				});
+			});
+		};
+		debugRepoFetch();
+		const loadRepos = async () => {
+			// --- PLATFORM CHECK: Only run for GitHub ---
+			let platform = 'github';
+			try {
+				const items = await new Promise((resolve) => {
+					chrome.storage.local.get(['platform'], resolve);
+				});
+				platform = items.platform || 'github';
+			} catch (_e) {}
+			if (platform !== 'github') {
+				if (repoStatus) repoStatus.textContent = 'Repository loading is only available for GitHub.';
+				return;
+			}
+			console.log('window.fetchUserRepositories exists:', !!window.fetchUserRepositories);
+			console.log(
+				'Available functions:',
+				Object.keys(window).filter((key) => key.includes('fetch')),
+			);
+
+			if (!window.fetchUserRepositories) {
+				repoStatus.textContent = 'Repository fetching not available';
+				return;
+			}
+
+			chrome.storage.local.get(['platform', 'githubUsername', 'githubToken'], (items) => {
+				const platform = items.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				const username = items[platformUsernameKey];
+				console.log('Storage data for repo fetch:', {
+					hasUsername: !!username,
+					hasToken: !!items.githubToken,
+					username: username,
+				});
+
+				if (!username) {
+					repoStatus.textContent = 'Username required';
+
+					return;
+				}
+
+				performRepoFetch();
+			});
+		};
+
+		const performRepoFetch = async () => {
+			// --- PLATFORM CHECK: Only run for GitHub ---
+			let platform = 'github';
+			try {
+				const items = await new Promise((resolve) => {
+					chrome.storage.local.get(['platform'], resolve);
+				});
+				platform = items.platform || 'github';
+			} catch (_e) {}
+			if (platform !== 'github') {
+				if (repoStatus) repoStatus.textContent = 'Repository fetching is only available for GitHub.';
+				return;
+			}
+			console.log('[POPUP-DEBUG] performRepoFetch called.');
+			repoStatus.textContent = chrome.i18n.getMessage('repoLoading');
+			repoSearch.classList.add('repository-search-loading');
+
+			try {
+				const cacheData = await new Promise((resolve) => {
+					chrome.storage.local.get(['repoCache'], resolve);
+				});
+				const storageItems = await new Promise((resolve) => {
+					chrome.storage.local.get(['platform', 'githubUsername', 'githubToken', 'orgName'], resolve);
+				});
+				const platform = storageItems.platform || 'github';
+				const platformUsernameKey = `${platform}Username`;
+				const username = storageItems[platformUsernameKey];
+				const repoCacheKey = `repos-${username}-${storageItems.orgName || ''}`;
+				const now = Date.now();
+				const cacheAge = cacheData.repoCache?.timestamp ? now - cacheData.repoCache.timestamp : Infinity;
+				const cacheTTL = 10 * 60 * 1000; // 10 minutes
+
+				console.log('[POPUP-DEBUG] Repo cache check:', {
+					key: repoCacheKey,
+					cacheKeyInCache: cacheData.repoCache?.cacheKey,
+					isMatch: cacheData.repoCache?.cacheKey === repoCacheKey,
+					age: cacheAge,
+					isFresh: cacheAge < cacheTTL,
+				});
+
+				if (cacheData.repoCache && cacheData.repoCache.cacheKey === repoCacheKey && cacheAge < cacheTTL) {
+					console.log('[POPUP-DEBUG] Using cached repositories in manual fetch');
+					availableRepos = cacheData.repoCache.data;
+					repoStatus.textContent = chrome.i18n.getMessage('repoLoaded', [availableRepos.length]);
+
+					if (document.activeElement === repoSearch) {
+						filterAndDisplayRepos(repoSearch.value.toLowerCase());
+					}
+					return;
+				}
+				console.log('[POPUP-DEBUG] No valid cache. Fetching from network.');
+				availableRepos = await window.fetchUserRepositories(
+					username,
+
+					storageItems.githubToken,
+					storageItems.orgName || '',
+				);
+				repoStatus.textContent = chrome.i18n.getMessage('repoLoaded', [availableRepos.length]);
+				console.log(`[POPUP-DEBUG] Fetched and loaded ${availableRepos.length} repos.`);
+
+				chrome.storage.local.set({
+					repoCache: {
+						data: availableRepos,
+						cacheKey: repoCacheKey,
+						timestamp: now,
+					},
+				});
+
+				if (document.activeElement === repoSearch) {
+					filterAndDisplayRepos(repoSearch.value.toLowerCase());
+				}
+			} catch (err) {
+				console.error(`Failed to load repos:`, err);
+
+				if (err.message?.includes('401')) {
+					repoStatus.textContent = chrome.i18n.getMessage('repoTokenPrivate');
+				} else if (err.message?.includes('username')) {
+					repoStatus.textContent = chrome.i18n.getMessage('githubUsernamePlaceholder');
+				} else {
+					repoStatus.textContent = `${chrome.i18n.getMessage('errorLabel')}: ${err.message || chrome.i18n.getMessage('repoLoadFailed')}`;
+				}
+			} finally {
+				repoSearch.classList.remove('repository-search-loading');
+			}
+		};
+
+		const filterAndDisplayRepos = (query) => {
+			if (availableRepos.length === 0) {
+				repoDropdown.innerHTML = `<div class="p-3 text-center text-gray-500 text-sm">${chrome.i18n.getMessage('repoLoading')}</div>`;
+				showDropdown();
+				return;
+			}
+
+			const filtered = availableRepos.filter(
+				(repo) =>
+					!selectedRepos.includes(repo.fullName) &&
+					(repo.name.toLowerCase().includes(query) || repo.description?.toLowerCase().includes(query)),
+			);
+
+			if (filtered.length === 0) {
+				repoDropdown.innerHTML = `<div class="p-3 text-center text-gray-500 text-sm" style="padding-left: 10px; ">${chrome.i18n.getMessage('repoNotFound')}</div>`;
+			} else {
+				repoDropdown.innerHTML = filtered
+					.slice(0, 10)
+					.map(
+						(repo) => `
+>>>>>>> Stashed changes
                     <div class="repository-dropdown-item" data-repo-name="${repo.fullName}">
                         <div class="repo-name">
                             <span>${repo.name}</span>

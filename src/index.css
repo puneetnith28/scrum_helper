@@ -349,6 +349,10 @@ hr,
     border-color: transparent #374151 transparent transparent;
 }
 
+#exportMenu {
+    min-width: 150px;
+}
+
 #toggleTokenVisibility {
     background: none;
     border: none;
