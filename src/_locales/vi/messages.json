@@ -68,6 +68,9 @@
     "githubTokenLabel": {
         "message": "Mã token GitHub của bạn"
     },
+    "exportReportButton": {
+        "message": "Xuất"
+    },
     "githubTokenPlaceholder": {
         "message": "Bắt buộc cho các yêu cầu đã xác thực"
     },

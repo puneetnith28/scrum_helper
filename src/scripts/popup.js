@@ -170,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
             'endingDate',
             'generateReport',
             'copyReport',
+            'exportReport',
             'refreshCache',
             'showOpenLabel',
             'showCommits',
@@ -397,6 +398,170 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.body.removeChild(tempDiv);
             }
         });
+
+        const exportBtn = document.getElementById('exportReport');
+        const exportMenu = document.getElementById('exportMenu');
+        const exportHTML = document.getElementById('exportHTML');
+        const exportMarkdown = document.getElementById('exportMarkdown');
+        const exportText = document.getElementById('exportText');
+
+        exportBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            exportMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!exportBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                exportMenu.classList.add('hidden');
+            }
+        });
+
+        function htmlToMarkdown(html) {
+            let markdown = html;
+            markdown = markdown.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n');
+            markdown = markdown.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n');
+            markdown = markdown.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+            markdown = markdown.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+            markdown = markdown.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+            markdown = markdown.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+            markdown = markdown.replace(/<a[^>]*href=["'](.*?)["'][^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+            markdown = markdown.replace(/<ul[^>]*>/gi, '\n');
+            markdown = markdown.replace(/<\/ul>/gi, '\n');
+            markdown = markdown.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n');
+            markdown = markdown.replace(/<br\s*\/?>/gi, '\n');
+            markdown = markdown.replace(/<\/p>/gi, '\n\n');
+            markdown = markdown.replace(/<p[^>]*>/gi, '');
+            markdown = markdown.replace(/<\/div>/gi, '\n');
+            markdown = markdown.replace(/<div[^>]*>/gi, '');
+            markdown = markdown.replace(/<[^>]+>/g, '');
+            markdown = markdown.replace(/&nbsp;/g, ' ');
+            markdown = markdown.replace(/&amp;/g, '&');
+            markdown = markdown.replace(/&lt;/g, '<');
+            markdown = markdown.replace(/&gt;/g, '>');
+            markdown = markdown.replace(/&quot;/g, '"');
+            markdown = markdown.replace(/&#39;/g, "'");
+            markdown = markdown.replace(/\n{3,}/g, '\n\n');
+            return markdown.trim();
+        }
+
+        function htmlToPlainText(html) {
+            let text = html;
+            text = text.replace(/<br\s*\/?>/gi, '\n');
+            text = text.replace(/<\/p>/gi, '\n\n');
+            text = text.replace(/<\/div>/gi, '\n');
+            text = text.replace(/<\/li>/gi, '\n');
+            text = text.replace(/<\/h[1-6]>/gi, '\n\n');
+            text = text.replace(/<[^>]+>/g, '');
+            text = text.replace(/&nbsp;/g, ' ');
+            text = text.replace(/&amp;/g, '&');
+            text = text.replace(/&lt;/g, '<');
+            text = text.replace(/&gt;/g, '>');
+            text = text.replace(/&quot;/g, '"');
+            text = text.replace(/&#39;/g, "'");
+            text = text.replace(/\n{3,}/g, '\n\n');
+            return text.trim();
+        }
+
+        function downloadFile(content, fileName, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportReport(format) {
+            const scrumReport = document.getElementById('scrumReport');
+            const reportContent = scrumReport.innerHTML;
+            
+            if (!reportContent || reportContent.trim() === '') {
+                alert('Please generate a report first before exporting.');
+                return;
+            }
+            
+            chrome.storage.local.get(['startingDate', 'endingDate', 'platform', 'platformUsername', 'githubUsername', 'gitlabUsername'], (result) => {
+                const platform = result.platform || 'github';
+                const username = result[`${platform}Username`] || result.githubUsername || result.gitlabUsername || 'user';
+                const startDate = result.startingDate || getYesterday();
+                const endDate = result.endingDate || getToday();
+                
+                const formatDate = (dateStr) => {
+                    const date = new Date(dateStr);
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                };
+                
+                const formattedStart = formatDate(startDate);
+                const formattedEnd = formatDate(endDate);
+                
+                let content, fileName, mimeType;
+                
+                if (format === 'html') {
+                    const htmlTemplate = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scrum Report - ${username} (${formattedStart} to ${formattedEnd})</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; line-height: 1.6; color: #333; background-color: #f5f5f5; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px; }
+        a { color: #2563eb; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Scrum Report</h1>
+        <p><strong>User:</strong> ${username}</p>
+        <p><strong>Period:</strong> ${formattedStart} to ${formattedEnd}</p>
+        <p><strong>Platform:</strong> ${platform.charAt(0).toUpperCase() + platform.slice(1)}</p>
+        <hr>
+        ${reportContent}
+        <div class="footer">
+            <p>Generated by Scrum Helper Extension • ${new Date().toLocaleString()}</p>
+        </div>
+    </div>
+</body>
+</html>`;
+                    content = htmlTemplate;
+                    fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.html`;
+                    mimeType = 'text/html';
+                } else if (format === 'markdown') {
+                    const markdownContent = htmlToMarkdown(reportContent);
+                    const markdownTemplate = `# Scrum Report\n\n**User:** ${username}\n**Period:** ${formattedStart} to ${formattedEnd}\n**Platform:** ${platform.charAt(0).toUpperCase() + platform.slice(1)}\n\n---\n\n${markdownContent}\n\n---\n\n*Generated by Scrum Helper Extension on ${new Date().toLocaleString()}*`;
+                    content = markdownTemplate;
+                    fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.md`;
+                    mimeType = 'text/markdown';
+                } else if (format === 'text') {
+                    const textContent = htmlToPlainText(reportContent);
+                    const textTemplate = `SCRUM REPORT\n${'='.repeat(60)}\n\nUser: ${username}\nPeriod: ${formattedStart} to ${formattedEnd}\nPlatform: ${platform.charAt(0).toUpperCase() + platform.slice(1)}\n\n${'='.repeat(60)}\n\n${textContent}\n\n${'='.repeat(60)}\n\nGenerated by Scrum Helper Extension\n${new Date().toLocaleString()}`;
+                    content = textTemplate;
+                    fileName = `scrum_report_${username}_${formattedStart}_to_${formattedEnd}.txt`;
+                    mimeType = 'text/plain';
+                }
+                
+                downloadFile(content, fileName, mimeType);
+                exportMenu.classList.add('hidden');
+                
+                exportBtn.innerHTML = '<i class="fa fa-check"></i> Exported';
+                setTimeout(() => {
+                    exportBtn.innerHTML = '<i class="fa fa-download"></i> <span data-i18n="exportReportButton">Export</span>';
+                }, 2000);
+            });
+        }
+
+        exportHTML.addEventListener('click', () => exportReport('html'));
+        exportMarkdown.addEventListener('click', () => exportReport('markdown'));
+        exportText.addEventListener('click', () => exportReport('text'));
 
         // Custom date container click handler
         document.getElementById('customDateContainer').addEventListener('click', () => {

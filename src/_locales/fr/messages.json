@@ -68,6 +68,9 @@
     "githubTokenLabel": {
         "message": "Votre jeton GitHub"
     },
+    "exportReportButton": {
+        "message": "Exporter"
+    },
     "githubTokenPlaceholder": {
         "message": "Requis pour les requêtes authentifiées"
     },

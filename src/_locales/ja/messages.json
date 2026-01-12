@@ -68,6 +68,9 @@
     "githubTokenLabel": {
         "message": "GitHubトークン"
     },
+    "exportReportButton": {
+        "message": "エクスポート"
+    },
     "githubTokenPlaceholder": {
         "message": "認証済みリクエストに必要です"
     },

@@ -69,6 +69,9 @@
     "githubTokenLabel": {
         "message": "您的 GitHub 令牌"
     },
+    "exportReportButton": {
+        "message": "导出"
+    },
     "githubTokenPlaceholder": {
         "message": "进行身份验证请求所必需"
     },

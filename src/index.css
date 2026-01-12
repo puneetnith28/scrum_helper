@@ -363,6 +363,15 @@ hr,
     vertical-align: middle;
 }
 
+#exportReport {
+    cursor: pointer;
+}
+
+#exportMenu {
+    min-width: 120px;
+    width: max-content;
+}
+
 @keyframes eye-rotate {
     0% {
         transform: rotate(0deg);
