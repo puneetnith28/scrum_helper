@@ -192,35 +192,55 @@
 						</div>
 					</div>
 
-					<div>
-						<div>
-							<h6 class="text-base font-semibold mt-2" data-i18n="scrumReportLabel">Scrum Report</h6>
-							<div id="scrumReport" contenteditable="true"
-								class="min-h-[200px] overflow-y-auto whitespace-pre-wrap border-2 border-gray-200 bg-gray-100 rounded-xl text-gray-800 p-2 my-2">
-							</div>
-						</div>
-						<div class="flex justify-between gap-2">
-							<button id="generateReport"
-								class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-								<i class="fa fa-refresh"></i> <span data-i18n="generateReportButton">Generate
-									Report</span>
-							</button>
-							<button id="copyReport"
-								class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded">
-								<i class="fa fa-copy"></i> <span data-i18n="copyReportButton">Copy Report</span>
-							</button>
-						</div>
-					</div>
-					<div class="border-gray-100 border-2 bg-white rounded-3xl px-4 py-2 mx-2 my-2">
-						<div>
-							<h4 class="font-semibold text-xl" data-i18n="noteTitle">Note:</h4>
-							<ul class="text-xs list-disc list-inside">
-								<p data-i18n="notePoint1">Pull requests are fetched based on the most recent review activity by any contributor, not just your own. Please review and adjust the generated SCRUM report to ensure it accurately reflects your work before sharing.
-								</p>
-							</ul>
-						</div>
-					</div>
-				</div>
+            <div>
+              <div>
+                <h6
+                  class="text-base font-semibold mt-2"
+                  data-i18n="scrumReportLabel"
+                >
+                  Scrum Report
+                </h6>
+                <div
+                  id="scrumReport"
+                  contenteditable="true"
+                  class="min-h-[200px] overflow-y-auto whitespace-pre-wrap border-2 border-gray-200 bg-gray-100 rounded-xl text-gray-800 p-2 my-2"
+                ></div>
+              </div>
+              <div class="flex justify-between gap-2">
+                <button
+                  id="generateReport"
+                  class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+                >
+                  <i class="fa fa-refresh"></i>
+                  <span data-i18n="generateReportButton">Generate Report</span>
+                </button>
+                <button
+                  id="copyReport"
+                  class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+                >
+                  <i class="fa fa-copy"></i>
+                  <span data-i18n="copyReportButton">Copy Report</span>
+                </button>
+              </div>
+            </div>
+            <div
+              class="border-gray-100 border-2 bg-white rounded-3xl px-4 py-2 mx-2 my-2"
+            >
+              <div>
+                <h4 class="font-semibold text-xl" data-i18n="noteTitle">
+                  Note:
+                </h4>
+                <ul class="text-xs list-disc list-inside">
+                  <p id="notePoint1Text" data-i18n="notePoint1">
+                    Pull requests are fetched based on the most recent review
+                    activity by any contributor, not just your own. Please
+                    review and adjust the generated SCRUM report to ensure it
+                    accurately reflects your work before sharing.
+                  </p>
+                </ul>
+              </div>
+            </div>
+          </div>
 
 				<div id="settingsSection" class="tab-content hidden">
 					<div class="orgSection">

@@ -67,8 +67,9 @@
     },
     "githubTokenLabel": {
         "message": "Token GitHub Anda"
-    },
-    "githubTokenPlaceholder": {
+    },    "exportReportButton": {
+        "message": "Ekspor"
+    },    "githubTokenPlaceholder": {
         "message": "Diperlukan untuk permintaan terotentikasi"
     },
     "showCommitsLabel": {

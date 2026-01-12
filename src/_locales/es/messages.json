@@ -68,6 +68,9 @@
     "githubTokenLabel": {
         "message": "Su token de GitHub"
     },
+    "exportReportButton": {
+        "message": "Exportar"
+    },
     "githubTokenPlaceholder": {
         "message": "Requerido para realizar solicitudes autenticadas"
     },

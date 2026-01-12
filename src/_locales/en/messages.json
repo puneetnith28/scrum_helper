@@ -75,6 +75,10 @@
     "message": "Copy Report",
     "description": "Text for the 'Copy Report' button."
   },
+  "exportReportButton": {
+    "message": "Export",
+    "description": "Text for the 'Export' button."
+  },
   "settingsOrgNameLabel": {
     "message": "Organization Name",
     "description": "Label for the organization name input in settings."

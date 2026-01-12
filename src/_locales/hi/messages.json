@@ -68,6 +68,9 @@
     "githubTokenLabel": {
         "message": "आपका GitHub टोकन"
     },
+    "exportReportButton": {
+        "message": "निर्यात करें"
+    },
     "githubTokenPlaceholder": {
         "message": "प्रमाणित अनुरोधों के लिए आवश्यक"
     },
